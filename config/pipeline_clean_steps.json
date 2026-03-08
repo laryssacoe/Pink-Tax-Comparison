@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "key": "clean_finalize",
+      "description": "Remove duplicates, missing critical rows, and extreme outliers",
+      "command": [
+        "scripts/cleaning/clean_pairs_dataset.py"
+      ]
+    },
+    {
+      "key": "clean_quality",
+      "description": "Build data quality summary",
+      "command": [
+        "scripts/cleaning/build_quality_queue.py"
+      ]
+    },
+    {
+      "key": "clean_enrich",
+      "description": "Enrich ingredients from Open Beauty Facts",
+      "command": [
+        "scripts/cleaning/enrich_openbeautyfacts.py"
+      ]
+    }
+  ]
+}

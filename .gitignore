@@ -1,0 +1,26 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Notebook artifacts
+.ipynb_checkpoints/
+writing/
+notebooks/
+scripts/analysis/
+
+# Local virtual environments
+.venv/
+venv/
+env/
+.env
+
+# OS/editor files
+.DS_Store
+.vscode/
+
+# Runtime outputs
+data/logs/*
+data/db/*.db
+data/analysis/*
+!data/analysis/.gitkeep
+data/eda/*

@@ -1,0 +1,46 @@
+{
+  "steps": [
+    {
+      "key": "scrape_amazon_in",
+      "description": "Scrape Amazon India observations",
+      "command": [
+        "scripts/scraping/scrape_amazon_india.py"
+      ]
+    },
+    {
+      "key": "scrape_bigbasket",
+      "description": "Scrape BigBasket observations",
+      "command": [
+        "scripts/scraping/scrape_bigbasket.py"
+      ]
+    },
+    {
+      "key": "scrape_amazon_jp",
+      "description": "Scrape Amazon Japan observations",
+      "command": [
+        "scripts/scraping/scrape_amazon_japan.py"
+      ]
+    },
+    {
+      "key": "scrape_matsumoto",
+      "description": "Scrape Matsumoto Kiyoshi observations",
+      "command": [
+        "scripts/scraping/scrape_matsumoto_kiyoshi.py"
+      ]
+    },
+    {
+      "key": "build_observations",
+      "description": "Merge current scraper outputs into data/raw/pair_observations.csv with safety checks",
+      "command": [
+        "scripts/cleaning/build_pair_observations.py"
+      ]
+    },
+    {
+      "key": "clean_pairs",
+      "description": "Build cleaned dataset with hybrid gender labeling",
+      "command": [
+        "scripts/cleaning/generate_pairs_dataset.py"
+      ]
+    }
+  ]
+}

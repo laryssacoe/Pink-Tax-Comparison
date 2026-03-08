@@ -1,0 +1,14 @@
+{
+  "include": [
+    "scripts",
+    "src",
+    "code"
+  ],
+  "extraPaths": [
+    "./src"
+  ],
+  "typeCheckingMode": "basic",
+  "reportArgumentType": "information",
+  "reportOperatorIssue": "information",
+  "reportAttributeAccessIssue": "warning"
+}
