@@ -24,3 +24,6 @@ data/db/*.db
 data/analysis/*
 !data/analysis/.gitkeep
 data/eda/*
+data/raw/_backups/
+data/clean/_backups/
+data/raw/*_found_urls.txt
