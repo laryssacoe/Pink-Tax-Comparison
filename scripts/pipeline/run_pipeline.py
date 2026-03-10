@@ -26,6 +26,7 @@ class pipeline_step:
     key: str
     description: str
     command: list[str]
+    optional: bool = False
 
 def load_steps(config_path: Path) -> list[pipeline_step]:
     """
@@ -34,7 +35,15 @@ def load_steps(config_path: Path) -> list[pipeline_step]:
 
     cfg = load_pipeline_definition(config_path)
     raw_steps = cfg.get("steps", [])
-    steps = [pipeline_step(s["key"], s["description"], s["command"]) for s in raw_steps]
+    steps = [
+        pipeline_step(
+            key=s["key"],
+            description=s["description"],
+            command=s["command"],
+            optional=bool(s.get("optional", False)),
+        )
+        for s in raw_steps
+    ]
 
     if not steps:
         raise ValueError("No steps found in pipeline config.")
@@ -71,6 +80,11 @@ def main() -> None:
         default=None,
         help="Optional single step key to run.",
     )
+    parser.add_argument(
+        "--include-optional",
+        action="store_true",
+        help="Include steps marked as optional in the pipeline config.",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.pipeline_config)
@@ -81,6 +95,8 @@ def main() -> None:
         if args.step not in lookup:
             raise SystemExit(f"Unknown step: {args.step}")
         steps = [lookup[args.step]]
+    elif not args.include_optional:
+        steps = [s for s in steps if not s.optional]
 
     for step in steps:
         run_one_step(step, paths.root)

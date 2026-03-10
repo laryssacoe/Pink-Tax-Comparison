@@ -3,6 +3,7 @@ Shared utility helpers used across pipeline scripts.
 """
 
 from __future__ import annotations
+from collections import Counter
 from datetime import date, datetime
 from pathlib import Path
 
@@ -87,3 +88,50 @@ def backup_existing_file(path: Path, backup_dir_name: str = "_backups") -> Path 
     backup_path = backup_dir / f"{path.stem}_{timestamp}{path.suffix}"
     backup_path.write_bytes(path.read_bytes())
     return backup_path
+
+def select_diverse_pair_codes(products: list[dict], limit: int) -> set[str]:
+    """
+    Select pair codes with balanced brand/category coverage for limited runs.
+    """
+
+    if limit <= 0:
+        return set()
+
+    pair_meta: list[tuple[str, str, str, int]] = []
+    seen_codes: set[str] = set()
+    for index, product in enumerate(products):
+        pair_code = str(product.get("pair_code", "")).strip()
+        if not pair_code or pair_code in seen_codes:
+            continue
+        seen_codes.add(pair_code)
+        brand = str(product.get("brand", "")).strip()
+        category = str(product.get("category", "")).strip()
+        pair_meta.append((pair_code, brand, category, index))
+
+    if limit >= len(pair_meta):
+        return {code for code, _, _, _ in pair_meta}
+
+    selected: list[str] = []
+    selected_set: set[str] = set()
+    brand_counts: Counter[str] = Counter()
+    category_counts: Counter[str] = Counter()
+
+    while len(selected) < limit:
+        candidates = [meta for meta in pair_meta if meta[0] not in selected_set]
+        if not candidates:
+            break
+
+        pair_code, brand, category, _ = min(
+            candidates,
+            key=lambda item: (
+                brand_counts[item[1]],
+                category_counts[item[2]],
+                item[3],
+            ),
+        )
+        selected.append(pair_code)
+        selected_set.add(pair_code)
+        brand_counts[brand] += 1
+        category_counts[category] += 1
+
+    return set(selected)

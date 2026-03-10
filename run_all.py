@@ -34,6 +34,11 @@ if __name__ == "__main__":
         default="",
         help="Optional single step key to run from selected config.",
     )
+    parser.add_argument(
+        "--include-optional",
+        action="store_true",
+        help="Include optional pipeline steps (for example Rakuten scraping).",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.pipeline_config) if args.pipeline_config else config_by_mode[args.mode]
@@ -41,6 +46,8 @@ if __name__ == "__main__":
 
     if args.step:
         cmd.extend(["--step", args.step])
+    if args.include_optional:
+        cmd.append("--include-optional")
 
     result = subprocess.run(cmd, cwd=root, check=False)
     raise SystemExit(result.returncode)
