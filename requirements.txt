@@ -10,6 +10,6 @@ nbformat>=5.9.0
 transformers>=4.35.0
 torch>=2.0.0
 
-# scraper dependencies (only needed if running live scrapers)
-# selenium>=4.15.0        # bigbasket_scraper.py
-# webdriver-manager>=4.0  # bigbasket_scraper.py
+# scraper dependencies (needed for browser-mode scraping)
+selenium>=4.15.0
+webdriver-manager>=4.0

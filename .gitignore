@@ -25,5 +25,11 @@ data/analysis/*
 !data/analysis/.gitkeep
 data/eda/*
 data/raw/_backups/
+data/spec/_backups/
+data/raw/chrome_profile/
 data/clean/_backups/
 data/raw/*_found_urls.txt
+data/raw/*_found_urls.json
+data/raw/debug/
+data/raw/gender_model_cache.json
+data/raw/obf_cache.json
