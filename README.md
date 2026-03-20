@@ -237,3 +237,74 @@ Per-source scraper config override:
 
 The canonical pipeline scripts are under `scripts/`.
 If duplicate script copies exist at repository root, pipeline execution still uses `scripts/...` paths from pipeline JSON configs.
+
+## 12) EDA + Website
+
+This repo includes a full exploratory analysis pipeline and a deployable frontend site.
+
+### EDA pipeline
+
+- Script: `scripts/analysis/run_eda.py`
+- Input: `data/clean/pink_tax_final_dataset_cleaned.csv`
+- Outputs:
+  - `data/analysis/eda_summary.json`
+  - chart PNGs in `data/analysis/charts/`
+  - summary tables (`city_summary.csv`, `retailer_summary.csv`, `category_summary.csv`, etc.)
+
+Run:
+
+```bash
+python scripts/analysis/run_eda.py
+```
+
+### EDA notebook
+
+- Notebook: `notebooks/exploratory_data_analysis.ipynb`
+- Purpose:
+  - reproducible exploratory workflow
+  - data loading and sample checks
+  - descriptive statistics table
+  - core EDA figures with short interpretation and limitations
+
+Open/run from repository root:
+
+```bash
+jupyter notebook notebooks/exploratory_data_analysis.ipynb
+```
+
+or in VS Code:
+
+```bash
+code notebooks/exploratory_data_analysis.ipynb
+```
+
+### Frontend website
+
+- React app folder: `frontend/`
+- React data feed: `frontend/public/data/eda_summary.json`
+
+Run React frontend locally:
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host
+```
+
+Then open:
+
+- `http://localhost:5173`
+
+Optional static fallback:
+
+- `website/` (plain HTML version)
+
+Run static fallback locally:
+
+```bash
+python -m http.server 8080 --directory website
+```
+
+Then open:
+
+- `http://localhost:8080`
