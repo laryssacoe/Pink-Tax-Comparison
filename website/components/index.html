@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pink Tax Explorer | EDA Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">Data Science for Social Good</p>
+      <h1>The Pink Tax Across Hyderabad and Tokyo</h1>
+      <p class="subtitle">Interactive exploratory analysis of same-brand female and male product pairs.</p>
+    </header>
+
+    <section class="panel filters">
+      <h2>Interactive Filters</h2>
+      <div class="filter-grid">
+        <label>
+          City
+          <select id="city-filter"></select>
+        </label>
+        <label>
+          Retailer
+          <select id="retailer-filter"></select>
+        </label>
+        <label>
+          Category
+          <select id="category-filter"></select>
+        </label>
+      </div>
+      <button id="reset-filters" type="button">Reset Filters</button>
+    </section>
+
+    <section class="metrics" id="metric-cards"></section>
+
+    <section class="chart-grid">
+      <article class="panel">
+        <h2>Pink Tax Distribution</h2>
+        <div id="histogram" class="chart"></div>
+      </article>
+      <article class="panel">
+        <h2>Average Pink Tax by Retailer</h2>
+        <div id="retailer-bar" class="chart"></div>
+      </article>
+      <article class="panel">
+        <h2>Pink Tax by City (Box Plot)</h2>
+        <div id="city-box" class="chart"></div>
+      </article>
+      <article class="panel">
+        <h2>Category Level Means</h2>
+        <div id="category-bar" class="chart"></div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Most Extreme Pairs in Current Filter</h2>
+      <div class="table-wrap">
+        <table id="extreme-table">
+          <thead>
+            <tr>
+              <th>Pair Code</th>
+              <th>City</th>
+              <th>Retailer</th>
+              <th>Category</th>
+              <th>Brand</th>
+              <th>Pink Tax %</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel narrative">
+      <h2>Social Impact Lens</h2>
+      <p>
+        This exploratory analysis highlights where gendered pricing differs across product classes and marketplaces.
+        The goal is to identify where consumers, regulators, and platforms can target transparency interventions first.
+      </p>
+      <p>
+        Focus groups impacted include frequent personal-care buyers, lower-income households exposed to recurring price gaps,
+        and policy actors evaluating discriminatory market patterns.
+      </p>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
