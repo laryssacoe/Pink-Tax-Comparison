@@ -5,8 +5,8 @@ __pycache__/
 # Notebook artifacts
 .ipynb_checkpoints/
 writing/
-notebooks/
 scripts/analysis/
+!scripts/analysis/run_eda.py
 
 # Local virtual environments
 .venv/
@@ -17,6 +17,42 @@ env/
 # OS/editor files
 .DS_Store
 .vscode/
+
+# Node / React artifacts
+node_modules/
+frontend/**/node_modules/
+frontend/**/.vite/
+frontend/**/dist/
+frontend/**/.cache/
+frontend/**/coverage/
+frontend/**/public/data/*.json
+!frontend/**/public/data/.gitkeep
+frontend/**/public/charts/
+frontend/**/public/charts/*.png
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Generated website frontend data
+website/components/data/*.json
+website/components/charts/
+website/components/charts/*.png
+
+# Generated EDA chart images
+data/analysis/**/*.png
+
+# Figure artifacts (all generated figures)
+**/fig*.png
+**/fig*.jpg
+**/fig*.jpeg
+**/fig*.svg
+**/fig*.pdf
+data/analysis/charts/
+website/charts/
+website/components/charts/
+frontend/public/charts/
+frontend/**/public/charts/
 
 # Runtime outputs
 data/logs/*
