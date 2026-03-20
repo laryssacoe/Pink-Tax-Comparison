@@ -8,7 +8,9 @@ from collections import defaultdict
 from pathlib import Path
 import argparse
 import csv
+import re
 import sys
+import unicodedata
 
 root = Path(__file__).resolve().parents[2]
 src = root / "src"
@@ -50,6 +52,161 @@ output_fields = [
 
 confidence_rank = {"LOW": 1, "MED": 2, "HIGH": 3}
 rank_to_confidence = {1: "LOW", 2: "MED", 3: "HIGH"}
+incompatible_form_pairs = {
+    ("serum", "gel"),
+    ("serum", "stick"),
+    ("cream", "stick"),
+    ("oil", "gel"),
+    ("spray", "roll_on"),
+    ("bar", "wash"),
+}
+form_keyword_aliases = {
+    "roll on": "roll_on",
+    "roll-on": "roll_on",
+    "rollon": "roll_on",
+    "spray": "spray",
+    "stick": "stick",
+    "gel": "gel",
+    "serum": "serum",
+    "cream": "cream",
+    "oil": "oil",
+    "lotion": "lotion",
+    "bar": "bar",
+    "soap": "bar",
+    "wash": "wash",
+    "shampoo": "shampoo",
+    "conditioner": "conditioner",
+    "toner": "toner",
+}
+premium_tier_keywords = {
+    "premium",
+    "pro",
+    "professional",
+    "luxury",
+    "advanced",
+    "visible white",
+    "whitening",
+    "brightening",
+    "anti aging",
+    "anti-age",
+    "anti age",
+    "serum",
+    "treatment",
+    "repair",
+    "retinol",
+    "collagen",
+    "vitamin c",
+    "radiance",
+    "intensive",
+}
+function_groups = {
+    "anti_dandruff": {"anti dandruff", "dandruff"},
+    "brightening": {"brightening", "whitening", "visible white", "radiance", "glow"},
+    "acne_oil_control": {"acne", "oil control", "sebum", "clarifying", "pore"},
+    "anti_aging": {"anti aging", "anti age", "wrinkle", "firming", "retinol", "collagen"},
+    "moisturizing": {"moisture", "moisturizing", "moisturising", "hydrating", "hydrate", "nourish"},
+    "coloring": {"hair colour", "hair color", "colour", "color"},
+}
+critical_function_tags = {"anti_dandruff", "brightening", "acne_oil_control", "anti_aging", "coloring"}
+
+def normalize_text(text: str | None) -> str:
+    """
+    Normalize strings for lexical comparability checks.
+    """
+
+    raw = unicodedata.normalize("NFKD", str(text or ""))
+    ascii_text = raw.encode("ascii", "ignore").decode("ascii")
+    lower_text = ascii_text.lower()
+    alnum_space = re.sub(r"[^a-z0-9]+", " ", lower_text)
+    return re.sub(r"\s+", " ", alnum_space).strip()
+
+def product_forms(name: str | None) -> set[str]:
+    """
+    Return canonical product forms detected in name.
+    """
+
+    normalized = normalize_text(name)
+    forms: set[str] = set()
+
+    for token, canonical in form_keyword_aliases.items():
+        if token in normalized:
+            forms.add(canonical)
+
+    return forms
+
+def keyword_hits(name: str | None, keywords: set[str]) -> set[str]:
+    """
+    Return matched keywords in a normalized product name.
+    """
+
+    normalized = normalize_text(name)
+    return {kw for kw in keywords if kw in normalized}
+
+def function_tags(name: str | None) -> set[str]:
+    """
+    Return inferred function tags from product title.
+    """
+
+    normalized = normalize_text(name)
+    tags: set[str] = set()
+
+    for tag, keywords in function_groups.items():
+        if any(keyword in normalized for keyword in keywords):
+            tags.add(tag)
+
+    return tags
+
+def is_comparable_pair(
+    brand: str,
+    female_name: str,
+    male_name: str,
+    female_size: float,
+    male_size: float,
+) -> bool:
+    """
+    Apply hard pair-quality gates before writing observations.
+    """
+
+    if male_size <= 0:
+        return False
+
+    size_ratio = female_size / male_size
+    if size_ratio < 0.70 or size_ratio > 1.30:
+        return False
+
+    female_forms = product_forms(female_name)
+    male_forms = product_forms(male_name)
+    if female_forms and male_forms and not (female_forms & male_forms):
+        if len(female_forms) == 1 and len(male_forms) == 1:
+            return False
+    for female_form in female_forms:
+        for male_form in male_forms:
+            if (
+                (female_form, male_form) in incompatible_form_pairs
+                or (male_form, female_form) in incompatible_form_pairs
+            ):
+                return False
+
+    female_tier_hits = keyword_hits(female_name, premium_tier_keywords)
+    male_tier_hits = keyword_hits(male_name, premium_tier_keywords)
+    if bool(female_tier_hits) != bool(male_tier_hits):
+        return False
+
+    female_tags = function_tags(female_name)
+    male_tags = function_tags(male_name)
+    if female_tags and male_tags and female_tags.isdisjoint(male_tags):
+        return False
+
+    raw_brand = str(brand or "")
+    if "/" in raw_brand:
+        components = [normalize_text(part) for part in raw_brand.split("/") if len(normalize_text(part)) >= 3]
+        if len(components) >= 2:
+            female_hits = {part for part in components if part in normalize_text(female_name)}
+            male_hits = {part for part in components if part in normalize_text(male_name)}
+            if female_hits and male_hits and female_hits.isdisjoint(male_hits):
+                return False
+
+    return True
 
 def normalize_gender_from_row(row: dict) -> str:
     """
@@ -150,6 +307,17 @@ def pair_map_from_scrape_csv(path: Path) -> tuple[dict[tuple, dict], int, int]:
             continue
 
         pair_code, city, brand, category, retailer, date_observed = key
+        female_product_name = str(female.get("product_name", "")).strip()
+        male_product_name = str(male.get("product_name", "")).strip()
+        if not is_comparable_pair(
+            brand=brand,
+            female_name=female_product_name,
+            male_name=male_product_name,
+            female_size=female_size,
+            male_size=male_size,
+        ):
+            continue
+
         female_conf = normalize_confidence(female.get("confidence"))
         male_conf = normalize_confidence(male.get("confidence"))
         conservative_rank = min(confidence_rank[female_conf], confidence_rank[male_conf])
@@ -181,8 +349,8 @@ def pair_map_from_scrape_csv(path: Path) -> tuple[dict[tuple, dict], int, int]:
             "city": city,
             "brand": brand,
             "category": category,
-            "female_product": str(female.get("product_name", "")).strip(),
-            "male_product": str(male.get("product_name", "")).strip(),
+            "female_product": female_product_name,
+            "male_product": male_product_name,
             "female_size": format_number_str(female_size),
             "male_size": format_number_str(male_size),
             "retailer": retailer,
@@ -273,6 +441,7 @@ def main() -> None:
     default_scrapes = [
         paths.data_raw / "amazon_in_raw.csv",
         paths.data_raw / "bigbasket_raw.csv",
+        paths.data_raw / "blinkit_raw.csv",
         paths.data_raw / "flipkart_raw.csv",
         paths.data_raw / "amazon_jp_raw.csv",
         paths.data_raw / "rakuten_jp_raw.csv",
